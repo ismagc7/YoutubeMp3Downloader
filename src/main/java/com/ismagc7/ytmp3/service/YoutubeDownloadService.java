@@ -1,4 +1,4 @@
-package com.example.ytmp3.service;
+package com.ismagc7.ytmp3.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

@@ -46,3 +46,6 @@ target/dist/
 target/package-input/
 target/ffmpeg.zip
 target/ffmpeg-extract/
+
+# Recursos de packaging (los iconos SÍ se versionan)
+!src/packaging/

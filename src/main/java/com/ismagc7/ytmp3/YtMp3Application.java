@@ -1,4 +1,4 @@
-package com.example.ytmp3;
+package com.ismagc7.ytmp3;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

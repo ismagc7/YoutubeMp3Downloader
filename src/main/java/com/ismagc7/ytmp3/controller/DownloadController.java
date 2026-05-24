@@ -1,6 +1,6 @@
-package com.example.ytmp3.controller;
+package com.ismagc7.ytmp3.controller;
 
-import com.example.ytmp3.service.YoutubeDownloadService;
+import com.ismagc7.ytmp3.service.YoutubeDownloadService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
