@@ -1,0 +1,48 @@
+# Compiled output
+target/
+*.class
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.code-workspace
+*.factorypath
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+nbproject/
+nb-configuration.xml
+
+# Spring Boot
+spring-shell.log
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+
+# Docker
+docker-compose.override.yml
+
+# Packaging artifacts
+target/dist/
+target/package-input/
+target/ffmpeg.zip
+target/ffmpeg-extract/

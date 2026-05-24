@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,9 @@ public class YoutubeDownloadService {
 
   @Value("${ytdlp.path:/usr/local/bin/yt-dlp}")
   private String ytDlpPath;
+
+  @Value("${ffmpeg.path:}")
+  private String ffmpegPath;
 
   private Path tempDir;
 
@@ -34,19 +38,22 @@ public class YoutubeDownloadService {
 
     String outputTemplate = downloadDir + "/%(title)s.%(ext)s";
 
-    ProcessBuilder pb =
-        new ProcessBuilder(
-            ytDlpPath,
-            "-x",
-            "--audio-format",
-            "mp3",
-            "--audio-quality",
-            "0",
-            "--no-playlist",
-            "--no-warnings",
-            "-o",
-            outputTemplate,
-            url);
+    List<String> command = new ArrayList<>(List.of(
+        ytDlpPath,
+        "-x",
+        "--audio-format", "mp3",
+        "--audio-quality", "0",
+        "--no-playlist",
+        "--no-warnings",
+        "-o", outputTemplate
+    ));
+    if (ffmpegPath != null && !ffmpegPath.isBlank()) {
+      command.add("--ffmpeg-location");
+      command.add(ffmpegPath);
+    }
+    command.add(url);
+
+    ProcessBuilder pb = new ProcessBuilder(command);
     pb.redirectErrorStream(true);
 
     Process process = pb.start();
