@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube MP3 Downloader</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 560px;
+            text-align: center;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: #ff0000;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 24px rgba(255, 0, 0, 0.35);
+        }
+
+        .logo svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .input-group input:focus {
+            border-color: rgba(255, 0, 0, 0.7);
+            background: rgba(255, 255, 255, 0.11);
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+            letter-spacing: 0.3px;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(255, 0, 0, 0.5);
+        }
+
+        .btn-download:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-download:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #ff0000;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .loading-hint {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.82rem;
+        }
+
+        /* Error / Success messages */
+        .message {
+            display: none;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .message.error {
+            background: rgba(255, 60, 60, 0.15);
+            border: 1px solid rgba(255, 60, 60, 0.35);
+            color: #ff8080;
+        }
+
+        .message.success {
+            background: rgba(60, 210, 120, 0.12);
+            border: 1px solid rgba(60, 210, 120, 0.3);
+            color: #5fe0a0;
+        }
+
+        .message.visible {
+            display: block;
+        }
+
+        .message-icon {
+            margin-right: 0.4rem;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 2rem 0 1.5rem;
+        }
+
+        .footer-note {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.78rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- Logo -->
+    <div class="logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+    </div>
+
+    <h1>YouTube a MP3</h1>
+    <p class="subtitle">Pega la URL de cualquier vídeo de YouTube y descarga el audio en MP3</p>
+
+    <form id="downloadForm">
+        <div class="input-group">
+            <input
+                type="url"
+                id="youtubeUrl"
+                name="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                required
+                autocomplete="off"
+                spellcheck="false"
+            />
+        </div>
+        <button type="submit" class="btn-download" id="downloadBtn">
+            Descargar MP3
+        </button>
+    </form>
+
+    <div class="message error" id="errorMsg">
+        <span class="message-icon">&#9888;</span>
+        <span id="errorText"></span>
+    </div>
+
+    <div class="message success" id="successMsg">
+        <span class="message-icon">&#10003;</span>
+        Descarga iniciada correctamente
+    </div>
+
+    <div class="divider"></div>
+    <p class="footer-note">Solo para uso personal. Respeta los derechos de autor.</p>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p class="loading-text">Procesando vídeo...</p>
+    <p class="loading-hint">Esto puede tardar unos segundos</p>
+</div>
+
+<script>
+    const form = document.getElementById('downloadForm');
+    const urlInput = document.getElementById('youtubeUrl');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const errorMsg = document.getElementById('errorMsg');
+    const errorText = document.getElementById('errorText');
+    const successMsg = document.getElementById('successMsg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        clearMessages();
+        setLoading(true);
+
+        try {
+            const response = await fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'url=' + encodeURIComponent(url)
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                showError(data.error || 'Error desconocido al procesar el vídeo.');
+                return;
+            }
+
+            // Extraer nombre del fichero desde la cabecera
+            const disposition = response.headers.get('Content-Disposition') || '';
+            let filename = 'audio.mp3';
+            const match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+                       || disposition.match(/filename="([^"]+)"/i);
+            if (match) {
+                filename = decodeURIComponent(match[1]);
+            }
+
+            // Crear blob y disparar descarga
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+
+            showSuccess();
+
+        } catch (err) {
+            showError('Error de conexión: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    function setLoading(active) {
+        loadingOverlay.classList.toggle('visible', active);
+        downloadBtn.disabled = active;
+    }
+
+    function clearMessages() {
+        errorMsg.classList.remove('visible');
+        successMsg.classList.remove('visible');
+    }
+
+    function showError(msg) {
+        errorText.textContent = msg;
+        errorMsg.classList.add('visible');
+    }
+
+    function showSuccess() {
+        successMsg.classList.add('visible');
+    }
+</script>
+</body>
+</html>
